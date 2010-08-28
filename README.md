@@ -66,15 +66,15 @@ On the tab **Manage Jobs** you have the list of available jobs and their status.
     Log: open a window with the current log of the job
     Response: open a window with the current response of the job
 
-On the tab **Create a Job** you have the list of available jobs and their status. you can create a job, by choosing its worker and defining (or not) its parameters as a JSON formatted string. [screenshot](http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-1.png)
+On the tab **Create a Job** you have the list of available jobs and their status. you can create a job, by choosing its worker and defining (or not) its parameters as a JSON formatted string. [screenshot](http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-2.png)
 
-On the tab **Manage Workers** you have the list of available jobs and their status. you have a list of available workers, by selecting a worker you have a few option on them: [screenshot](http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-1.png)
+On the tab **Manage Workers** you have the list of available jobs and their status. you have a list of available workers, by selecting a worker you have a few option on them: [screenshot](http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-3.png)
 
     Reload: reload the list of workers
     Delete: delete the worker
     Code: view the source code of the worker, and allows to edit and save it
 
-On the tab **Create a Worker** you have the list of available jobs and their status. you can create a new Worker, by choosing its name and pasting it code. [screenshot](http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-1.png)
+On the tab **Create a Worker** you have the list of available jobs and their status. you can create a new Worker, by choosing its name and pasting it code. [screenshot](http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-4.png)
 
 ## API
 
