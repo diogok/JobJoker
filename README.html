@@ -1,0 +1,151 @@
+<h1>JobJoker</h1>
+
+<p>JobJoker is a tool for managing and running jobs/proccess on PHP, keeping its state, log and response. </p>
+
+<p><img src="http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-0.png" alt='JobJoker - Job queue in PHP' title="JobJoker - Job queue in PHP" /></p>
+
+<p>It provides a (almost) restful api for managing the jobs, and a friendly interface for visual management.</p>
+
+<p>JobJoker lets you write proccess in PHP, run those proccess, stop them, get the log and responses at real time using a very simple API/UI.</p>
+
+<p>Let me know if something breaks...</p>
+
+<h2>Core Concepts</h2>
+
+<p>A <strong>Worker</strong> is a php file that implements the job to be done. It is just a plain PHP class, that implements a <tt>run</tt> method, it can import libraries, access webservices, access a database... and do anything that a PHP script may do. A worker have function special for <tt>log</tt> and <tt>response</tt>.</p>
+
+<p>A <strong>Job</strong> is like an instance of a worker, it is the proccess that will run the worker. A job may contain any numbers of <strong>parameters</strong> that will be passed for the worker.</p>
+
+<p>The <strong>Job</strong> may be in the following states:</p>
+
+<pre><code>**idle** when it was just created
+**active** when it is running
+**stop** if it was force to stop
+**error** if something went wrong
+**done** if it has finnished without problems
+</code></pre>
+
+<p>The <strong>Job</strong> may go from <tt>idle</tt> to <tt>active</tt> and from <tt>active</tt> to anything but <tt>idle</tt>. A job may be deleted if it is not <tt>active</tt>.</p>
+
+<p>You can <tt>start</tt>, <tt>stop</tt> or <tt>kill</tt> a job.</p>
+
+<h2>Installation and configuration</h2>
+
+<p>Just put it in a folder under your webserver folder, make sure it support URLRewrite on .htaccess.</p>
+
+<p>You have a few options on config.php:</p>
+
+<pre><code>$api -&gt; Is the full URL for accessing this api 
+$php_command -&gt; The command to run php
+$kill_command -&gt; The command to kill a process
+
+$mysql -&gt; Set to true to use a mysql db (better performance)
+$mysql_host -&gt; MySql host
+$mysql_database -&gt; MySql database
+$mysql_user -&gt; MySql username
+$mysql_password -&gt; MySql password
+
+$auth -&gt; Set true to require authentication 
+$user -&gt; The authentication user
+$password -&gt; The authentication password
+</code></pre>
+
+<p>If you intend to use MySql, you must create the schema on <tt>db/schema.sql</tt>.</p>
+
+<p>Access the URL and make some tests by yourself.</p>
+
+<h2>User Interface (admin)</h2>
+
+<p>By accessing the API you will be redirect to a basic admin interface (libs/ui.html), from there you have full control over the Jobjoker jobs queue and workers.</p>
+
+<p>On the tab <strong>Manage Jobs</strong> you have the list of available jobs and their status. By selecting you can perform the actions on the bottom buttons: <a href="http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-1.png">screenshot</a> </p>
+
+<pre><code>Reload: reload the list of jobs
+Start: starts a job that is idle
+Stop: send the stop signal to an active job (may take a little time to actually stop)
+Kill: abruptely kills a job (at any state), use carefully after trying stop
+Delete: removes the job (that may no be active)
+Log: open a window with the current log of the job
+Response: open a window with the current response of the job
+</code></pre>
+
+<p>On the tab <strong>Create a Job</strong> you have the list of available jobs and their status. you can create a job, by choosing its worker and defining (or not) its parameters as a JSON formatted string. <a href="http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-1.png">screenshot</a></p>
+
+<p>On the tab <strong>Manage Workers</strong> you have the list of available jobs and their status. you have a list of available workers, by selecting a worker you have a few option on them: <a href="http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-1.png">screenshot</a></p>
+
+<pre><code>Reload: reload the list of workers
+Delete: delete the worker
+Code: view the source code of the worker, and allows to edit and save it
+</code></pre>
+
+<p>On the tab <strong>Create a Worker</strong> you have the list of available jobs and their status. you can create a new Worker, by choosing its name and pasting it code. <a href="http://github.com/diogok/jobjoker/raw/master/libs/imgs/jj-1.png">screenshot</a></p>
+
+<h2>API</h2>
+
+<p>The API uses Json like <tt>{"message":"some message","success":true,"data":[{"foo":"bar"}]}</tt> if not specified other.</p>
+
+<pre><code>GET / Will lead you to admin interface
+GET /workers Returns the list of workers
+GET /workers/WorkerName Returns the data of given WorkerName
+GET /workers/WorkerName/code Return the text/plain  php code of the Worker
+PUT /workers/WorkerName Will create/update WorkerName with php code content sent as text/plain (just send the php code as the request body)
+DELETE /workers/WorkerName Will delete WorkerName
+
+GET /jobs Will return all jobs
+GET /jobs/job-id Will return data about this job
+GET /jobs/job-id/log Will return current log of this job
+GET /jobs/job-id/status Will return the current status of the job
+GET /jobs/job-id/respose Will return current response of the job
+
+POST /jobs Send a json like {"worker":"WorkerName","parameters":{"foo":"bar"}} to create a job, it will return the job with the id
+DELETE /jobs/job-id Will delete this job
+POST /jobs/job-id/log Will append sent text/plain to log (send just the text to append, no json)
+POST /jobs/job-id/response Will append sent text/plain to response (send just the text to append, no json)
+
+PUT /jobs/job-id/status Send the text to set the status of the job. If "start" is sent, job will start. If "stop", job will try to sto. If "kill", job will be forced to stop.
+</code></pre>
+
+<h2>How it works (a few implementation details)</h2>
+
+<p>There is a SQLite database (or a mysql) and there is an kinda-rest API.</p>
+
+<p>The <strong>Worker</strong>s are the files on the <tt>workers_files</tt>, they extend the Worker class, on libs/Worker.php.</p>
+
+<p>The Worker class implements the methods to performing logging/responsing using the api, and makes the parameters available for the <strong>Worker</strong> implementation. It also keep the status of the <strong>Job</strong> and perform little error handling.</p>
+
+<p>A <strong>Job</strong> is an entry on the database, with certain paramaters, a PID (if it started), timestamps, logs and response. Once a <strong>Job</strong> is aked to start by the API, it runs the run.php script in background (using exec) and give it the <strong>Job</strong> ID.</p>
+
+<p>The run.php will ask back the api for the job info, include the needed <strong>Worker</strong> class, give it its parameters and call the Worker start method (that will call the class run method).</p>
+
+<p>The <strong>Job</strong> will run until the run method returns, or if it is stoped or killed. </p>
+
+<p>If the API is asked to stop a job it will send a kill signal (exec kill), this signal will be traped by the Worker, witch will set the flag to stop whenever possible, gracefully. The class must check <tt>isActive</tt> from time to time to properly exit if a stop was attempted.</p>
+
+<p>If the API is asked to kill a job it will try to kill it proccess (exec kill -9).</p>
+
+<p>The <tt>api</tt> start at index.php, it uses the restserver for url routing and just PDO for database. To get around, simply follow the addMap methods, it points a method (get/put/post) to a url regex and the class::method that will handle that. Controllers are on the controllers folder, Views on the views folder, everything else should be in libs.</p>
+
+<p>The WorkerController class implements the logic to list the available workers, to create and delete them.</p>
+
+<p>The JobReaderController implements the listings of jobs, its statuses, logs and response.</p>
+
+<p>The JobWriterController implements the logic to interact with the Jobs, creating, updating, logging, responsing, start/stop/kill and delete. </p>
+
+<p>There are tests for the API on libs/JobjokerTest.php</p>
+
+<h2>TODO</h2>
+
+<ul>
+<li>support windows?</li>
+<li>support nginx URLRewrite</li>
+<li>rewrite this doc</li>
+<li>write unit tests (now have only tests for the api)</li>
+<li>implement the use of o getInformation of the workers</li>
+<li>implement parameters validation</li>
+<li>implement job timeout?</li>
+<li>implement job scheduler?</li>
+<li>suport better authentication</li>
+<li>improve API mime type consistency accross the api</li>
+<li>refactor (Those damn ugly controllers, sqls...)</li>
+<li>what else?</li>
+</ul>
