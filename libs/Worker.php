@@ -15,7 +15,7 @@ abstract class Worker {
     public function __construct()  {
     }
 
-    public function setParameters(array $parameters){
+    public function setParameters($parameters){
         $this->parameters = $parameters ;
         return $this;
     }
